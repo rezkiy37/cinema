@@ -13,7 +13,7 @@ const MovieType = new GraphQLObjectType({
         name: { type: GraphQLString },
         genre: { type: GraphQLString },
         directorId: {
-            type: DirectorsType,
+            type: DirectorType,
             resolve(parent, args) {
                 //return directors.find(director => director.id == parent.directorId)
                 return Directors.findById(parent.directorId)
@@ -22,7 +22,7 @@ const MovieType = new GraphQLObjectType({
     }),
 })
 
-const DirectorsType = new GraphQLObjectType({
+const DirectorType = new GraphQLObjectType({
     name: 'Directors',
     fields: () => ({
         id: { type: GraphQLID },
@@ -38,6 +38,42 @@ const DirectorsType = new GraphQLObjectType({
     })
 })
 
+const Mutation = new GraphQLObjectType({
+    name: 'Mutation',
+    fields: {
+        addDirector: {
+            type: DirectorType,
+            args: {
+                name: { type: GraphQLString },
+                age: { type: GraphQLInt },
+            },
+            resolve(parent, args) {
+                const director = new Directors({
+                    name: args.name,
+                    age: args.age,
+                })
+                return director.save()
+            },
+        },
+        addMovie: {
+            type: MovieType,
+            args: {
+                name: { type: GraphQLString },
+                genre: { type: GraphQLString },
+                directorId: { type: GraphQLID },
+            },
+            resolve(parent, args) {
+                const movie = new Movies({
+                    name: args.name,
+                    genre: args.genre,
+                    directorId: args.directorId,
+                })
+                return movie.save()
+            }
+        }
+    }
+})
+
 const Query = new GraphQLObjectType({
     name: 'Query',
     fields: {
@@ -50,7 +86,7 @@ const Query = new GraphQLObjectType({
             },
         },
         director: {
-            type: DirectorsType,
+            type: DirectorType,
             args: { id: { type: GraphQLID } },
             resolve(parent, args) {
                 //return directors.find(director => director.id == args.id)
@@ -65,7 +101,7 @@ const Query = new GraphQLObjectType({
             }
         },
         directors: {
-            type: new GraphQLList(DirectorsType),
+            type: new GraphQLList(DirectorType),
             resolve(parent, args) {
                 //return directors
                 return Directors.find({})
@@ -76,6 +112,7 @@ const Query = new GraphQLObjectType({
 
 module.exports = new GraphQLSchema({
     query: Query,
+    mutation: Mutation,
 });
 
 
